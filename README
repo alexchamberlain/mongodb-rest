@@ -1,0 +1,8 @@
+REST over HTTP Server for MongoDB
+
+Aims
+Security
+Performance
+
+Building
+make

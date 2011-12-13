@@ -1,0 +1,3 @@
+*.o
+mongodb-rest
+mongoose/

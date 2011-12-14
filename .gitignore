@@ -1,3 +1,4 @@
 *.o
 mongodb-rest
 mongoose/
+working/

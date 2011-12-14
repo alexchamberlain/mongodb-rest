@@ -1,7 +1,11 @@
-PROG=	mongodb-rest
-CFLAGS=	-W -Wall -Imongoose -pthread -g
+PROG=	./mongodb-rest
+
+CC=gcc
+CXX=g++
+CFLAGS=	-W -Wall -pthread -g
 CXXFLAGS=$(CFLAGS)
-LIBS=-ldl
+LIBS=-ldl -lmongoclient -lboost_regex -lboost_thread\
+     -lboost_program_options -lboost_filesystem
 
 all: $(PROG)
 
@@ -11,4 +15,12 @@ mongoose.o: mongoose.c
 main.o: main.cpp
 
 $(PROG): main.o mongoose.o
-	g++ $(CXXFLAGS) -o $@ $^ $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
+
+clean:
+	rm *.o $(PROG)
+
+run:
+	$(PROG)
+
+.PHONY: clean

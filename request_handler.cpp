@@ -189,14 +189,6 @@ static void post_request_handler(mg_connection* conn,
 }
 
 static void put_request_handler(mg_connection* conn,
-                                const mg_request_info* request_info,
-				const uri& processed_uri,
-				response& r) {
-  //persistent_data * pd = static_cast<persistent_data*>(request_info->user_data);
-  r.status_code = 405;
-}
-
-static void delete_request_handler(mg_connection* conn,
 				   const mg_request_info* request_info,
 				   const uri& processed_uri,
 				   response& r) {
@@ -209,8 +201,72 @@ static void delete_request_handler(mg_connection* conn,
   if(processed_uri.collection.length() == 0 || processed_uri.id.length() == 0) {
     r.status_code = 405;
   } else {
+    mongo::OID id(processed_uri.id);
+    mongo::Query q(BSON("_id" << id));
+    std::auto_ptr<mongo::DBClientCursor> cursor
+      = pd->db.query(qualified_collection, q);
+    if(!cursor->more()) {
+      r.status_code = 404;
+    } else {
+      const char *clh = mg_get_header(conn, "Content-Length");
+
+      if(clh == NULL) {
+	r.status_code = 411;
+	r.contents = "Content-Length header malformed or not set.";
+      } else {
+	int cl = atoi(clh);
+	char * c = static_cast<char*>(malloc(cl+1));
+	if(c == NULL) {
+	  r.status_code = 413;
+	} else {
+	  mg_read(conn, c, cl);
+	  c[cl] = '\0';
+	  std::cout << c << std::endl;
+	  mongo::BSONObj b(mongo::fromjson(c));
+	  std::cout << b << std::endl;
+
+	  if(b["_id"].OID() != id) {
+            r.status_code = 409;
+	  } else {
+	    pd->db.update(qualified_collection, q, b);
+	    if(pd->db.getLastError() != "") {
+	      /* Bad */ 
+	      r.status_code = 500;
+	      r.type = "text/plain";
+	      r.contents = "Update failed";
+	    } else {
+	      /* Good */
+	      std::string location("/");
+	      location += processed_uri.collection;
+	      location += "/";
+	      location += b["_id"].OID().str();
+
+	      r.status_code = 303;
+	      r.set_header("Location", location);
+	      r.contents = "Resource updated";
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
+static void delete_request_handler(mg_connection* conn,
+                                const mg_request_info* request_info,
+				const uri& processed_uri,
+				response& r) {
+  persistent_data * pd = static_cast<persistent_data*>(request_info->user_data);
+
+  std::string qualified_collection(pd->db_name);
+  qualified_collection += ".";
+  qualified_collection += processed_uri.collection;
+
+  if(processed_uri.collection.length() == 0 || processed_uri.id.length() == 0) {
     r.status_code = 405;
-    mongo::Query q(BSON("_id" << mongo::OID(processed_uri.id)));
+  } else {
+    mongo::OID id(processed_uri.id);
+    mongo::Query q(BSON("_id" << id));
     std::auto_ptr<mongo::DBClientCursor> cursor
       = pd->db.query(qualified_collection, q);
     if(!cursor->more()) {

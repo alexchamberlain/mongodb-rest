@@ -14,7 +14,9 @@ mongoose.o: mongoose.c
 
 main.o: main.cpp
 
-$(PROG): main.o mongoose.o
+request_handler.o: request_handler.cpp
+
+$(PROG): main.o request_handler.o mongoose.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 
 clean:

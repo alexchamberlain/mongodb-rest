@@ -200,11 +200,33 @@ static void delete_request_handler(mg_connection* conn,
 				   const mg_request_info* request_info,
 				   const uri& processed_uri,
 				   response& r) {
-  //persistent_data * pd = static_cast<persistent_data*>(request_info->user_data);
+  persistent_data * pd = static_cast<persistent_data*>(request_info->user_data);
+
+  std::string qualified_collection(pd->db_name);
+  qualified_collection += ".";
+  qualified_collection += processed_uri.collection;
+
   if(processed_uri.collection.length() == 0 || processed_uri.id.length() == 0) {
     r.status_code = 405;
   } else {
     r.status_code = 405;
+    mongo::Query q(BSON("_id" << mongo::OID(processed_uri.id)));
+    std::auto_ptr<mongo::DBClientCursor> cursor
+      = pd->db.query(qualified_collection, q);
+    if(!cursor->more()) {
+      r.status_code = 404;
+    } else {
+      pd->db.remove(qualified_collection, q, true);
+      if(pd->db.getLastError() != "") {
+        /* Bad */ 
+	r.status_code = 500;
+	r.type = "text/plain";
+	r.contents = "Deletion failed.";
+      } else {
+        /* Good */
+	r.status_code = 200;
+      }
+    }
   }
 }
 

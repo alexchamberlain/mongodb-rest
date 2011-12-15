@@ -1,3 +1,10 @@
+/* MongoDB REST over HTTP interface
+ *
+ * Copyright 2011 Alex Chamberlain
+ * Licensed under the MIT licence with no-advertise clause. See LICENCE.
+ *
+ */
+
 #ifndef REST_RESPONSE_H
 #define REST_RESPONSE_H
 #include <string>

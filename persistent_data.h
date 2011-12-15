@@ -1,3 +1,10 @@
+/* MongoDB REST over HTTP interface
+ *
+ * Copyright 2011 Alex Chamberlain
+ * Licensed under the MIT licence with no-advertise clause. See LICENCE.
+ *
+ */
+
 #include <mongo/client/dbclient.h>
 
 struct persistent_data {

@@ -1,3 +1,10 @@
+/* MongoDB REST over HTTP interface
+ *
+ * Copyright 2011 Alex Chamberlain
+ * Licensed under the MIT licence with no-advertise clause. See LICENCE.
+ *
+ */
+
 struct uri {
   std::string collection;
   std::string id;

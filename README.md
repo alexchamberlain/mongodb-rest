@@ -14,3 +14,10 @@ Building
 --------
 
 make
+
+TODO
+----
+
+* Abstract away the HTTP transport from the request handling to allow
+  integration with Apache/Nginx etc.
+
